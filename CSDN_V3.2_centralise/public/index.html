@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f172a"><title>CSDN — V3.2 Gestion scolaire</title>
+<link rel="manifest" href="manifest.json"><link rel="stylesheet" href="styles.css">
+</head><body>
+<header class="topbar">
+<div class="brand"><img id="brandLogo" src="logo-csdn.svg" alt="Logo CSDN"><div><h1>C.S.D.N — Gestion scolaire</h1><p id="schoolYearLabel"></p></div></div>
+<div class="top-actions"><span id="userBadge" class="user-badge"></span><button id="syncBadge" type="button" class="sync-badge" title="Synchroniser maintenant"></button><button id="lockBtn" type="button">Déconnexion</button><button id="refreshAppBtn" type="button">Actualiser l’application</button><button id="btnBackup">Sauvegarder</button><label class="file-btn">Restaurer<input id="restoreFile" type="file" accept=".json" hidden></label></div>
+</header>
+<div class="app-shell">
+<aside class="sidebar">
+<button class="nav active" data-view="dashboard">Tableau de bord</button>
+<button class="nav" data-view="promotion">Passage de classe</button>
+<button class="nav" data-view="students">Élèves</button>
+<button class="nav" data-view="payments">Paiements</button>
+<button class="nav" data-view="arrears">Impayés</button>
+<button class="nav" data-view="reminders">Relances</button>
+<button class="nav" data-view="expenses">Dépenses</button>
+<button class="nav" data-view="treasury">Trésorerie</button>
+<button class="nav" data-view="controls">Contrôles</button>
+<button class="nav" data-view="archives">Archives 2025-2026</button>
+<button class="nav" data-view="settings">Paramètres</button>
+</aside>
+<main class="content">
+
+<section id="dashboard" class="view active">
+<div class="info-banner"><strong>Règles clés :</strong> inscription décidée individuellement dans chaque fiche élève ; les impayés courants ne naissent qu'après l'échéance correspondant au mode de règlement ; le T3 2025-2026 officiel est arrêté à <strong>583 750 F CFA</strong>.</div>
+<div class="hero panel"><div><div class="hero-mini">Pilotage financier</div><h2>Situation en temps réel</h2><p>Les opérations annulées restent traçables mais sont exclues des calculs.</p></div><div class="hero-right"><span>Solde théorique disponible</span><strong id="heroBalance">0 F</strong><small id="heroTime"></small></div></div>
+<div class="toolbar"><button onclick="printSection('dashboard','Tableau de bord CSDN')">Imprimer le tableau de bord</button></div>
+<div class="cards finance-grid" id="dashboardCards"></div>
+<div class="grid3">
+<div class="panel"><h3>Situation financière</h3><div id="financialRealtime" class="metric-list"></div></div>
+<div class="panel"><h3>Échéances 2026-2027</h3><div id="deadlineSummary" class="metric-list"></div></div>
+<div class="panel"><h3>Alertes</h3><div id="alerts"></div></div>
+</div>
+<div class="grid2">
+<div class="panel"><h3>Situation par classe</h3><div class="table-wrap"><table id="classSummary"></table></div></div>
+<div class="panel"><h3>Principaux impayés</h3><div class="table-wrap"><table id="topArrearsTable"></table></div></div>
+</div>
+</section>
+
+<section id="promotion" class="view">
+<div class="view-header"><h2>Passage de classe des anciens élèves</h2><div class="actions"><button onclick="exportTableExcel('promotionTable','passage_classes_2026_2027.xls','Passage de classe 2026-2027')">Exporter Excel</button><button onclick="printTable('promotionTable','Passage de classe 2026-2027')">Imprimer</button><button class="primary" id="validateAllPromotionsBtn">Valider les décisions affichées</button></div></div>
+<div class="info-banner">La classe 2025-2026 est conservée jusqu'à validation. Les propositions sont : PS→MS→GS→1A→2A→3A→4A→5A→6A ; les 6A sont proposés « Sortant ». Vous pouvez choisir « Redouble » ou modifier la classe proposée avant validation.</div>
+<div class="panel"><div class="filters"><input id="promotionSearch" placeholder="Rechercher un élève"><select id="promotionClassFilter"><option value="">Toutes les anciennes classes</option></select><select id="promotionValidationFilter"><option value="">Validés et non validés</option><option value="non">Non validés</option><option value="oui">Validés</option></select></div><div class="table-wrap"><table id="promotionTable"></table></div></div>
+</section>
+
+<section id="students" class="view">
+<div class="view-header"><h2>Élèves</h2><div class="actions"><button onclick="exportTableExcel('studentsTable','eleves_2026_2027.xls','Élèves 2026-2027')">Exporter Excel</button><button onclick="printTable('studentsTable','Élèves 2026-2027')">Imprimer</button><button class="primary" id="newStudentBtn">Nouvel élève</button></div></div>
+<div class="panel"><div class="filters">
+<input id="studentSearch" placeholder="Rechercher nom ou prénom">
+<select id="studentClassFilter"><option value="">Toutes les classes</option></select>
+<select id="studentPlanFilter"><option value="">Tous modes</option><option>À définir</option><option>Mensuel</option><option>Trimestriel</option><option>Annuel</option></select>
+<select id="studentStatusFilter"><option value="">Actifs et inactifs</option><option>Actif</option><option>Inactif</option></select>
+</div><div class="table-wrap"><table id="studentsTable"></table></div></div>
+</section>
+
+<section id="payments" class="view">
+<div class="view-header"><h2>Paiements</h2><div class="actions"><button onclick="exportTableExcel('paymentsTable','paiements_2026_2027.xls','Paiements 2026-2027')">Exporter Excel</button><button onclick="printTable('paymentsTable','Paiements 2026-2027')">Imprimer</button><button class="primary" id="newPaymentBtn">Nouveau paiement</button></div></div>
+<div class="panel"><div class="filters">
+<input id="paymentSearch" placeholder="Rechercher nom, reçu ou période">
+<select id="paymentTypeFilter"><option value="">Tous les types</option><option>Inscription</option><option>Mensualité</option><option>Trimestre</option><option>Annuel</option><option>Impayé antérieur</option><option>Autres frais</option></select>
+<select id="paymentStatusFilter"><option value="">Toutes opérations</option><option>Validée</option><option>Annulée</option></select>
+</div><div class="table-wrap"><table id="paymentsTable"></table></div></div>
+</section>
+
+<section id="arrears" class="view">
+<div class="view-header"><h2>Impayés</h2><div class="actions"><button onclick="exportTableExcel('arrearsOldTable','impayes_2025_2026.xls','Impayés 2025-2026')">Exporter Excel</button><button onclick="printTable('arrearsOldTable','Impayés 2025-2026')">Imprimer</button></div></div>
+<div class="note"><strong>Important :</strong> le T3 officiel est maintenu à <strong>583 750 F CFA</strong>. Les trop-perçus sont volontairement masqués de l'exploitation courante et conservés uniquement dans l'archive technique.</div>
+<div class="summary-strip" id="arrearsSummary"></div>
+<div class="panel"><div class="filters"><input id="arrearsSearch" placeholder="Rechercher nom ou prénom"><select id="arrearsClassFilter"><option value="">Toutes les classes</option></select></div></div>
+<div class="grid2">
+<div class="panel"><h3>Soldes débiteurs individuels 2025-2026</h3><div class="table-wrap"><table id="arrearsOldTable"></table></div></div>
+<div class="panel"><h3>Impayés échus 2026-2027</h3><div class="table-wrap"><table id="arrearsCurrentTable"></table></div></div>
+</div>
+</section>
+
+<section id="reminders" class="view">
+<div class="view-header"><h2>Messages de relance — Impayés 2025-2026</h2><div class="actions"><button id="exportRemindersBtn">Exporter la liste Excel</button><button id="printSelectedRemindersBtn">Imprimer la sélection</button><button id="printAllRemindersBtn">Imprimer tous les résultats filtrés</button></div></div>
+<div class="grid2">
+<div class="panel"><h3>Modèle de message</h3><p class="muted">Variables disponibles : {NOM}, {PRENOM}, {CLASSE}, {TUTEUR}, {CONTACT}, {T1}, {T2}, {T3}, {MONTANT}.</p><textarea id="reminderTemplate" rows="17"></textarea><div class="toolbar"><button class="primary" id="saveReminderTemplateBtn">Enregistrer le modèle</button><button id="resetReminderTemplateBtn">Réinitialiser</button></div></div>
+<div class="panel"><h3>Aperçu</h3><pre id="reminderPreview" class="message-preview">Sélectionnez un élève et cliquez sur « Aperçu ».</pre></div>
+</div>
+<div class="panel"><div class="filters"><input id="reminderSearch" placeholder="Rechercher un élève ou un tuteur"><select id="reminderClassFilter"><option value="">Toutes les classes</option></select></div><div class="table-wrap"><table id="remindersTable"></table></div></div>
+</section>
+
+<section id="expenses" class="view">
+<div class="view-header"><h2>Dépenses</h2><div class="actions"><button onclick="exportTableExcel('expensesTable','depenses_2026_2027.xls','Dépenses 2026-2027')">Exporter Excel</button><button onclick="printTable('expensesTable','Dépenses 2026-2027')">Imprimer</button><button class="primary" id="newExpenseBtn">Nouvelle dépense</button></div></div>
+<div class="panel"><div class="filters"><input id="expenseSearch" placeholder="Rechercher une dépense"><select id="expenseCategoryFilter"><option value="">Toutes les catégories</option></select><select id="expenseStatusFilter"><option value="">Toutes opérations</option><option>Validée</option><option>Annulée</option></select></div><div class="table-wrap"><table id="expensesTable"></table></div></div>
+</section>
+
+<section id="treasury" class="view"><div class="view-header"><h2>Trésorerie</h2><div class="actions"><button onclick="exportTableExcel('treasuryTable','tresorerie_2026_2027.xls','Trésorerie 2026-2027')">Exporter Excel</button><button onclick="printTable('treasuryTable','Trésorerie 2026-2027')">Imprimer</button></div></div><div class="cards" id="treasuryCards"></div><div class="panel"><h3>Mouvements validés et annulés</h3><div class="table-wrap"><table id="treasuryTable"></table></div></div></section>
+
+<section id="controls" class="view"><div class="view-header"><h2>Contrôles</h2></div><div class="panel"><div class="table-wrap"><table id="controlsTable"></table></div></div></section>
+
+<section id="archives" class="view"><div class="view-header"><h2>Archives 2025-2026</h2></div><div class="panel"><pre id="archivePreview"></pre></div></section>
+
+<section id="settings" class="view">
+<div class="view-header"><h2>Paramètres</h2></div>
+<div class="panel settings-grid">
+<label>Année scolaire<input id="schoolYear"></label>
+<label>Solde initial de caisse<input id="openingBalance" type="number"></label>
+<label>Maternelle — tarif indicatif inscription<input id="feeMaterIns" type="number"></label>
+<label>Maternelle — mensualité<input id="feeMaterMonthly" type="number"></label>
+<label>Primaire — tarif indicatif inscription<input id="feePrimIns" type="number"></label>
+<label>Primaire — mensualité<input id="feePrimMonthly" type="number"></label>
+<label>Échéance T1<input id="deadlineT1" type="date"></label>
+<label>Échéance T2<input id="deadlineT2" type="date"></label>
+<label>Échéance T3<input id="deadlineT3" type="date"></label>
+<label>Échéance paiement annuel<input id="annualDeadline" type="date"></label>
+<label>Logo du complexe<input id="logoUpload" type="file" accept="image/*"><small>Vous pouvez remplacer le logo provisoire par le logo officiel.</small></label>
+<button class="primary" id="saveSettingsBtn">Enregistrer les paramètres</button>
+</div><div class="note"><strong>Réinscription :</strong> choisissez pour chaque élève « Payante », « Gratuite » ou « Exonérée / dispensée ». Les tarifs ci-dessus sont indicatifs ; le montant individuel reste votre décision.</div>
+<div class="panel"><h3>Catégories de dépenses</h3><div id="expenseCategoryList" class="chips"></div></div>
+<div class="panel" id="securityPanel"></div>
+</section>
+
+</main></div>
+
+<dialog id="studentDialog"><form method="dialog" id="studentForm"><h3>Fiche élève</h3><input type="hidden" id="studentId"><div class="form-grid">
+<label>Nom<input id="sLastName" required></label><label>Prénom<input id="sFirstName" required></label>
+<label>Classe<select id="sClass" required></select></label><label>Mode de règlement<select id="sPaymentPlan"><option>À définir</option><option>Mensuel</option><option>Trimestriel</option><option>Annuel</option></select></label>
+<label>Téléphone tuteur<input id="sPhone"></label><label>Statut social<select id="sSocial"><option>Normal</option><option>Cas social</option></select></label>
+<label>Statut élève<select id="sStatus"><option>Actif</option><option>Inactif</option></select></label><label>Ancien / Nouveau<select id="sOrigin"><option>Ancien</option><option>Nouveau</option></select></label>
+<label>Inscription<select id="sRegistrationStatus"><option value="due">Payante — frais dus</option><option value="free">Gratuite — aucun frais dû</option><option value="exempt">Exonérée / dispensée</option></select></label>
+<label>Montant individuel (F CFA)<input id="sRegistrationAmount" type="number" min="1" step="1"></label>
+<label>Motif / observation<input id="sRegistrationNote" maxlength="300"></label>
+<p>Ce choix est indépendant du statut Ancien / Nouveau et conservé au passage de classe. Un cas social reste exonéré de scolarité ; son inscription peut être décidée séparément.</p>
+</div><div class="dialog-actions"><button type="button" onclick="this.closest('dialog').close()">Annuler</button><button class="primary" id="saveStudentBtn" value="default">Enregistrer</button></div></form></dialog>
+
+<dialog id="studentProfileDialog" class="wide-dialog">
+<div class="profile-head"><div><h3 id="profileName">Fiche élève</h3><div id="profileMeta" class="muted"></div></div><button onclick="document.getElementById('studentProfileDialog').close()">Fermer</button></div>
+<div id="profileIdentity" class="profile-grid"></div>
+<div class="profile-actions"><button class="primary" id="profilePayCurrentBtn">Encaisser scolarité</button><button id="profilePayOldBtn">Régler impayé 2025-2026</button><button id="profileEditBtn">Modifier la fiche</button></div>
+<div class="grid2 profile-finance"><div class="panel"><h4>Situation 2025-2026</h4><div id="profileOldSituation" class="metric-list"></div></div><div class="panel"><h4>Situation 2026-2027</h4><div id="profileCurrentSituation" class="metric-list"></div></div></div>
+<div class="panel"><h4>Historique des opérations</h4><div class="table-wrap profile-history"><table id="profileHistoryTable"></table></div></div>
+</dialog>
+
+<dialog id="paymentDialog"><form method="dialog" id="paymentForm"><h3>Nouveau paiement</h3><div class="form-grid">
+<label>Rechercher l'élève<input id="pStudentSearch" placeholder="Tapez le nom ou prénom"></label><label>Élève<select id="pStudent" required></select></label>
+<label>Date<input id="pDate" type="date" required></label><label>Nature<select id="pType"><option>Inscription</option><option>Mensualité</option><option>Trimestre</option><option>Annuel</option><option>Impayé antérieur</option><option>Autres frais</option></select></label>
+<label>Période / tranche<input id="pPeriod" placeholder="Ex : T1 ou Octobre"></label><label>Montant<input id="pAmount" type="number" min="1" required></label>
+<label>Mode<select id="pMode"><option>Espèces</option><option>Mobile Money</option><option>Banque</option><option>Autre</option></select></label><label>N° reçu<input id="pReceipt"></label>
+</div><div id="paymentHint" class="hint"></div><div class="dialog-actions"><button type="button" onclick="this.closest('dialog').close()">Fermer</button><button class="primary" id="savePaymentBtn" value="default">Enregistrer</button></div></form></dialog>
+
+
+<dialog id="paymentConfirmDialog">
+<div class="confirm-box"><h3>Confirmer le paiement</h3><p class="muted">Vérifiez les informations avant l'enregistrement définitif.</p><div id="paymentConfirmSummary" class="metric-list"></div><div class="dialog-actions"><button id="backToPaymentBtn">Retour</button><button class="primary" id="confirmPaymentBtn">Confirmer et enregistrer</button></div></div>
+</dialog>
+
+<dialog id="expenseDialog"><form method="dialog" id="expenseForm"><h3>Nouvelle dépense</h3><div class="form-grid">
+<label>Date<input id="eDate" type="date" required></label><label>Catégorie<select id="eCategory" required></select></label>
+<label>Libellé<input id="eLabel" required></label><label>Montant<input id="eAmount" type="number" min="1" required></label>
+<label>Mode<select id="eMode"><option>Espèces</option><option>Mobile Money</option><option>Banque</option><option>Autre</option></select></label>
+</div><div class="dialog-actions"><button type="button" onclick="this.closest('dialog').close()">Fermer</button><button class="primary" id="saveExpenseBtn" value="default">Enregistrer</button></div></form></dialog>
+
+<script src="app.js"></script><script src="central.js"></script></body></html>
